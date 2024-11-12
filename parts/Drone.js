@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 import { propellerBladeGeometry, propellerBladesObj3D, propellerCoverGeometry, propellerCoverOjb3D } from './Propeller';
+import { makePhongMesh } from '../helpers/utils';
+import { bodyGeometry } from './Body';
 
 export class Drone {
   constructor() {
@@ -7,6 +9,7 @@ export class Drone {
     this.unit = 45;
     this.length = this.unit * 6;
     this.width = this.unit * 4;
+    this.height = this.unit * 1.5;
 
     this.baseSpeed = new THREE.Vector3(1, 0.7, 0.5);
     this.baseAngularSpeed = 0.02;
@@ -42,12 +45,16 @@ export class Drone {
     this.propellerBackObj3D = new THREE.Object3D();
     this.propellerBackObj3D.translateY(-this.length / 2);
     this.obj3D.add(this.propellerFrontObj3D, this.propellerBackObj3D);
-    this.#addPropellerCovers();
+    this.#addPropellers();
 
     this.bladesAngularSpeed = 0.5;
+
+    this.#addBody();
+
+    this.obj3D.translateZ(this.height + 10);
   }
 
-  #addPropellerCovers() {
+  #addPropellers() {
     const bladeMaterial = new THREE.MeshPhongMaterial({ color: 'green' });
     const propCoverMaterial = new THREE.MeshPhongMaterial({ color: 'red' });
 
@@ -88,6 +95,11 @@ export class Drone {
 
     this.propellerFrontObj3D.add(prop1, prop2);
     this.propellerBackObj3D.add(prop3, prop4);
+  }
+
+  #addBody() {
+    const body = makePhongMesh(bodyGeometry(this.width * 0.8, this.length * 0.8, this.height), 'blue');
+    this.obj3D.add(body);
   }
 
   #updateCamera() {

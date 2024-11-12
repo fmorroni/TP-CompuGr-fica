@@ -6,6 +6,8 @@ import { floorMesh } from './parts/Floor';
 
 // const gui = new GUI();
 
+let debugCameraActive = false;
+
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
@@ -14,6 +16,9 @@ renderer.shadowMap.enabled = true;
 const scene = new THREE.Scene();
 addAxes(scene, 100);
 scene.add(new THREE.AmbientLight(0xffffff, 2));
+const l = new THREE.DirectionalLight(0xffffaa, 5);
+l.position.set(1000, 1000, 500);
+scene.add(l);
 scene.add(floorMesh());
 
 const debugCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -68,7 +73,6 @@ window.addEventListener('keyup', (ev) => {
   if ((ev.shiftKey && ev.code === 'Space') || ev.code === 'KeyE') down = false;
 });
 
-let debugCameraActive = false;
 window.addEventListener('keypress', (ev) => {
   if (ev.code === 'Digit1') {
     drone.useGroundFollowCam();
