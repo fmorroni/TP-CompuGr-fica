@@ -3,7 +3,6 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { addAxes } from './helpers/utils';
 import { Drone } from './parts/Drone';
 import { floorMesh } from './parts/Floor';
-import { propellerBladeGeometry, propellerBladesObj3D } from './parts/Propeller';
 
 // const gui = new GUI();
 
@@ -16,14 +15,6 @@ const scene = new THREE.Scene();
 addAxes(scene, 100);
 scene.add(new THREE.AmbientLight(0xffffff, 2));
 scene.add(floorMesh());
-
-const prop = propellerBladesObj3D(
-  propellerBladeGeometry(20, 5, 1, 3),
-  new THREE.MeshPhongMaterial({ color: 'green' }),
-  7
-);
-prop.translateZ(30);
-scene.add(prop);
 
 const debugCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 debugCamera.position.set(0, 0, 150);
@@ -77,7 +68,7 @@ window.addEventListener('keyup', (ev) => {
   if ((ev.shiftKey && ev.code === 'Space') || ev.code === 'KeyE') down = false;
 });
 
-let debugCameraActive = true;
+let debugCameraActive = false;
 window.addEventListener('keypress', (ev) => {
   if (ev.code === 'Digit1') {
     drone.useGroundFollowCam();
@@ -111,9 +102,9 @@ function animate(frameTime = 0) {
     if (forwards) drone.accelerateForward();
     else if (backward) drone.accelerateBackward();
     else drone.decelerateY();
-    if (left) drone.accelerateLeft();
-    else if (right) drone.accelerateRight();
-    else drone.decelerateX();
+    if (left) drone.rotateLeft();
+    else if (right) drone.rotateRight();
+    // else drone.decelerateX();
     if (up) drone.accelerateUp();
     else if (down) drone.accelerateDown();
     else drone.decelerateZ();

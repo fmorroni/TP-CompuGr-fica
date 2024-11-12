@@ -31,6 +31,17 @@ export function propellerCoverGeometry(radius, height, thickness, resolution = 2
   return pcGeom;
 }
 
+/**
+ *  @param {THREE.BufferGeometry} bladeGeometry
+ */
+export function propellerCoverOjb3D(propCoverGeometry, cylinderGeometry, material) {
+  const propCover = new THREE.Mesh(propCoverGeometry, material);
+  const cylinder = new THREE.Mesh(cylinderGeometry, material);
+  const obj3D = new THREE.Object3D();
+  obj3D.add(propCover, cylinder);
+  return obj3D;
+}
+
 export function propellerBladeGeometry(length, width, thickness, offsetCenter = 0) {
   const shape = new THREE.Shape(
     [

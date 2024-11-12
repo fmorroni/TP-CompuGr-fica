@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { propellerCoverGeometry } from './Propeller';
+import { propellerBladeGeometry, propellerBladesObj3D, propellerCoverGeometry, propellerCoverOjb3D } from './Propeller';
 
 export class Drone {
   constructor() {
@@ -7,20 +7,20 @@ export class Drone {
     this.unit = 45;
     this.length = this.unit * 6;
     this.width = this.unit * 4;
-    this.propellerCoverRadius = this.unit;
 
     this.baseSpeed = new THREE.Vector3(1, 0.7, 0.5);
+    this.baseAngularSpeed = 0.02;
     this.currentSpeed = new THREE.Vector3(0, 0, 0);
     this.maxSpeed = new THREE.Vector3(10, 10, 5);
     this.maxPropellerRotation = (30 * Math.PI) / 180;
     this.propellerBaseRotation = 0.01;
 
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
     camera.up.set(0, 0, 1);
 
     this.backFollowCam = {
       camera: camera.clone(),
-      offset: new THREE.Vector3(0, -100, 150),
+      offset: new THREE.Vector3(0, -300, 250),
     };
     this.lateralFollowCam = {
       camera: camera.clone(),
@@ -43,6 +43,8 @@ export class Drone {
     this.propellerBackObj3D.translateY(-this.length / 2);
     this.obj3D.add(this.propellerFrontObj3D, this.propellerBackObj3D);
     this.#addPropellerCovers();
+
+    this.bladesAngularSpeed = 0.5;
   }
 
   #addPropellerCovers() {
@@ -51,23 +53,48 @@ export class Drone {
 
     const offsetX = this.width / 2;
 
-    const propCoverGeom = propellerCoverGeometry(this.propellerCoverRadius, 13, 3);
-    const propCover1 = new THREE.Mesh(propCoverGeom, propCoverMaterial);
-    propCover1.translateX(offsetX);
-    const propCover2 = new THREE.Mesh(propCoverGeom, propCoverMaterial);
-    propCover2.translateX(-offsetX);
-    const propCover3 = new THREE.Mesh(propCoverGeom, propCoverMaterial);
-    propCover3.translateX(offsetX);
-    const propCover4 = new THREE.Mesh(propCoverGeom, propCoverMaterial);
-    propCover4.translateX(-offsetX);
+    const pcRadius = this.unit;
+    const cylRadius = 3;
+    const resolution = 20;
+    const height = 10;
+    const bladeGeom = propellerBladeGeometry(pcRadius - 2 * cylRadius, height / 2, 0.2, cylRadius);
 
-    this.propellerFrontObj3D.add(propCover1, propCover2);
-    this.propellerBackObj3D.add(propCover3, propCover4);
+    const propCoverGeom = propellerCoverGeometry(pcRadius, height, 3, resolution);
+    const cylinder = new THREE.CylinderGeometry(cylRadius, cylRadius, height, resolution);
+    cylinder.rotateX(Math.PI / 2);
+    const propCoverObj3D = propellerCoverOjb3D(propCoverGeom, cylinder, propCoverMaterial);
+
+    const blades1 = propellerBladesObj3D(bladeGeom, bladeMaterial, 10);
+    blades1.translateX(offsetX);
+    const prop1 = new THREE.Object3D();
+    prop1.add(propCoverObj3D.clone().translateX(offsetX), blades1);
+
+    const blades2 = propellerBladesObj3D(bladeGeom, bladeMaterial, 10);
+    blades2.translateX(-offsetX);
+    const prop2 = new THREE.Object3D();
+    prop2.add(propCoverObj3D.clone().translateX(-offsetX), blades2);
+
+    const blades3 = propellerBladesObj3D(bladeGeom, bladeMaterial, 10);
+    blades3.translateX(offsetX);
+    const prop3 = new THREE.Object3D();
+    prop3.add(propCoverObj3D.clone().translateX(offsetX), blades3);
+
+    const blades4 = propellerBladesObj3D(bladeGeom, bladeMaterial, 10);
+    blades4.translateX(-offsetX);
+    const prop4 = new THREE.Object3D();
+    prop4.add(propCoverObj3D.clone().translateX(-offsetX), blades4);
+
+    this.propellerBlades = [blades1, blades2, blades3, blades4];
+
+    this.propellerFrontObj3D.add(prop1, prop2);
+    this.propellerBackObj3D.add(prop3, prop4);
   }
 
   #updateCamera() {
     if (this.activeCamera !== this.groundFollowCam) {
-      this.activeCamera.camera.position.copy(this.obj3D.position).add(this.activeCamera.offset);
+      this.activeCamera.camera.position.copy(
+        this.activeCamera.offset.clone().applyQuaternion(this.obj3D.quaternion).add(this.obj3D.position)
+      );
     }
 
     this.activeCamera.camera.lookAt(this.obj3D.position);
@@ -141,14 +168,21 @@ export class Drone {
     this.#decelerateAxis('y');
   }
 
-  accelerateRight() {
-    this.#acceleratePositive('x');
+  // accelerateRight() {
+  //   this.#acceleratePositive('x');
+  // }
+  // accelerateLeft() {
+  //   this.#accelerateNegative('x');
+  // }
+  // decelerateX() {
+  //   this.#decelerateAxis('x');
+  // }
+  rotateRight() {
+    this.obj3D.rotateZ(-this.baseAngularSpeed);
+    // this.activeCamera.camera.rotateZ(-this.baseAngularSpeed);
   }
-  accelerateLeft() {
-    this.#accelerateNegative('x');
-  }
-  decelerateX() {
-    this.#decelerateAxis('x');
+  rotateLeft() {
+    this.obj3D.rotateZ(this.baseAngularSpeed);
   }
 
   accelerateUp() {
@@ -161,9 +195,18 @@ export class Drone {
     this.#decelerateAxis('z');
   }
 
+  #rotateBlades() {
+    this.propellerBlades.forEach((b) => {
+      b.rotation.z += this.bladesAngularSpeed + this.currentSpeed.length() / this.maxSpeed.length();
+    });
+  }
+
   move() {
     this.#updateCamera();
-    this.obj3D.position.add(this.currentSpeed);
+    // this.#rotateBlades();
+    this.obj3D.translateX(this.currentSpeed.x);
+    this.obj3D.translateY(this.currentSpeed.y);
+    this.obj3D.translateZ(this.currentSpeed.z);
     this.obj3D.position.z = Math.max(this.obj3D.position.z, 0);
   }
 }
