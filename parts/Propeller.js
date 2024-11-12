@@ -1,4 +1,4 @@
-import * as THREE from "three";
+import * as THREE from 'three';
 
 export function propellerCoverGeometry(radius, height, thickness, resolution = 20) {
   const curveHeight = 1;
@@ -6,7 +6,7 @@ export function propellerCoverGeometry(radius, height, thickness, resolution = 2
     new THREE.Vector2(-thickness, height - curveHeight),
     new THREE.Vector2(-thickness, height),
     new THREE.Vector2(thickness, height),
-    new THREE.Vector2(thickness, height - curveHeight),
+    new THREE.Vector2(thickness, height - curveHeight)
   );
   const curve2 = curve1.clone();
 
@@ -23,9 +23,7 @@ export function propellerCoverGeometry(radius, height, thickness, resolution = 2
   curve2.v3.applyMatrix3(matrix2);
 
   const curveResolution = 50;
-  const points = curve1
-    .getPoints(curveResolution)
-    .concat(curve2.getPoints(curveResolution));
+  const points = curve1.getPoints(curveResolution).concat(curve2.getPoints(curveResolution));
   points.push(curve1.v0.clone());
 
   const pcGeom = new THREE.LatheGeometry(points, resolution);
@@ -33,19 +31,14 @@ export function propellerCoverGeometry(radius, height, thickness, resolution = 2
   return pcGeom;
 }
 
-export function propellerBladeGeometry(
-  length,
-  width,
-  thickness,
-  offsetCenter = 0,
-) {
+export function propellerBladeGeometry(length, width, thickness, offsetCenter = 0) {
   const shape = new THREE.Shape(
     [
       [-width / 2, 0],
       [-width / 2, length],
       [width / 2, length],
       [width / 2, 0],
-    ].map((p) => new THREE.Vector2(...p)),
+    ].map((p) => new THREE.Vector2(...p))
   );
 
   const extrudeSettings = {

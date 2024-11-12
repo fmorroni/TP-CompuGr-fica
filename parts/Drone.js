@@ -1,5 +1,5 @@
-import * as THREE from "three";
-import { propellerCoverGeometry } from "./Propeller";
+import * as THREE from 'three';
+import { propellerCoverGeometry } from './Propeller';
 
 export class Drone {
   constructor() {
@@ -15,12 +15,7 @@ export class Drone {
     this.maxPropellerRotation = (30 * Math.PI) / 180;
     this.propellerBaseRotation = 0.01;
 
-    const camera = new THREE.PerspectiveCamera(
-      75,
-      window.innerWidth / window.innerHeight,
-      0.1,
-      1000,
-    );
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.up.set(0, 0, 1);
 
     this.backFollowCam = {
@@ -51,8 +46,8 @@ export class Drone {
   }
 
   #addPropellerCovers() {
-    const bladeMaterial = new THREE.MeshPhongMaterial({ color: "green" });
-    const propCoverMaterial = new THREE.MeshPhongMaterial({ color: "red" });
+    const bladeMaterial = new THREE.MeshPhongMaterial({ color: 'green' });
+    const propCoverMaterial = new THREE.MeshPhongMaterial({ color: 'red' });
 
     const offsetX = this.width / 2;
 
@@ -72,9 +67,7 @@ export class Drone {
 
   #updateCamera() {
     if (this.activeCamera !== this.groundFollowCam) {
-      this.activeCamera.camera.position
-        .copy(this.obj3D.position)
-        .add(this.activeCamera.offset);
+      this.activeCamera.camera.position.copy(this.obj3D.position).add(this.activeCamera.offset);
     }
 
     this.activeCamera.camera.lookAt(this.obj3D.position);
@@ -98,40 +91,28 @@ export class Drone {
   }
 
   #acceleratePositive(axis) {
-    this.currentSpeed[axis] = Math.min(
-      this.currentSpeed[axis] + this.baseSpeed[axis],
-      this.maxSpeed[axis],
-    );
+    this.currentSpeed[axis] = Math.min(this.currentSpeed[axis] + this.baseSpeed[axis], this.maxSpeed[axis]);
   }
   #accelerateNegative(axis) {
-    this.currentSpeed[axis] = Math.max(
-      this.currentSpeed[axis] - this.baseSpeed[axis],
-      -this.maxSpeed[axis],
-    );
+    this.currentSpeed[axis] = Math.max(this.currentSpeed[axis] - this.baseSpeed[axis], -this.maxSpeed[axis]);
   }
   #decelerateAxis(axis) {
     if (this.currentSpeed[axis] < 0) {
-      this.currentSpeed[axis] = Math.min(
-        this.currentSpeed[axis] + this.baseSpeed[axis],
-        0,
-      );
+      this.currentSpeed[axis] = Math.min(this.currentSpeed[axis] + this.baseSpeed[axis], 0);
     } else if (this.currentSpeed[axis] > 0) {
-      this.currentSpeed[axis] = Math.max(
-        this.currentSpeed[axis] - this.baseSpeed[axis],
-        0,
-      );
+      this.currentSpeed[axis] = Math.max(this.currentSpeed[axis] - this.baseSpeed[axis], 0);
     }
   }
   #propellerForwardRotation(propellerObj3D) {
     propellerObj3D.rotation.x = Math.max(
       -this.maxPropellerRotation,
-      propellerObj3D.rotation.x - this.propellerBaseRotation,
+      propellerObj3D.rotation.x - this.propellerBaseRotation
     );
   }
   #propellerBackwardRotation(propellerObj3D) {
     propellerObj3D.rotation.x = Math.min(
       this.maxPropellerRotation,
-      propellerObj3D.rotation.x + this.propellerBaseRotation,
+      propellerObj3D.rotation.x + this.propellerBaseRotation
     );
   }
   #propellersForwardRotation() {
@@ -145,11 +126,11 @@ export class Drone {
 
   accelerateForward() {
     this.#propellersForwardRotation();
-    this.#acceleratePositive("y");
+    this.#acceleratePositive('y');
   }
   accelerateBackward() {
     this.#propellersBackwardRotation();
-    this.#accelerateNegative("y");
+    this.#accelerateNegative('y');
   }
   decelerateY() {
     if (this.propellerFrontObj3D.rotation.x < 0) {
@@ -157,27 +138,27 @@ export class Drone {
     } else if (this.propellerFrontObj3D.rotation.x > 0) {
       this.#propellersForwardRotation();
     }
-    this.#decelerateAxis("y");
+    this.#decelerateAxis('y');
   }
 
   accelerateRight() {
-    this.#acceleratePositive("x");
+    this.#acceleratePositive('x');
   }
   accelerateLeft() {
-    this.#accelerateNegative("x");
+    this.#accelerateNegative('x');
   }
   decelerateX() {
-    this.#decelerateAxis("x");
+    this.#decelerateAxis('x');
   }
 
   accelerateUp() {
-    this.#acceleratePositive("z");
+    this.#acceleratePositive('z');
   }
   accelerateDown() {
-    this.#accelerateNegative("z");
+    this.#accelerateNegative('z');
   }
   decelerateZ() {
-    this.#decelerateAxis("z");
+    this.#decelerateAxis('z');
   }
 
   move() {

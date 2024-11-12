@@ -1,12 +1,9 @@
-import * as THREE from "three";
-import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { addAxes } from "./helpers/utils";
-import { Drone } from "./parts/Drone";
-import { floorMesh } from "./parts/Floor";
-import {
-  propellerBladeGeometry,
-  propellerBladesObj3D,
-} from "./parts/Propeller";
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { addAxes } from './helpers/utils';
+import { Drone } from './parts/Drone';
+import { floorMesh } from './parts/Floor';
+import { propellerBladeGeometry, propellerBladesObj3D } from './parts/Propeller';
 
 // const gui = new GUI();
 
@@ -22,18 +19,13 @@ scene.add(floorMesh());
 
 const prop = propellerBladesObj3D(
   propellerBladeGeometry(20, 5, 1, 3),
-  new THREE.MeshPhongMaterial({ color: "green" }),
-  7,
+  new THREE.MeshPhongMaterial({ color: 'green' }),
+  7
 );
 prop.translateZ(30);
 scene.add(prop);
 
-const debugCamera = new THREE.PerspectiveCamera(
-  75,
-  window.innerWidth / window.innerHeight,
-  0.1,
-  1000,
-);
+const debugCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 debugCamera.position.set(0, 0, 150);
 debugCamera.up.set(0, 0, 1);
 debugCamera.lookAt(0, 0, 0);
@@ -49,61 +41,61 @@ let right = false;
 let up = false;
 let down = false;
 
-window.addEventListener("keydown", (ev) => {
-  if (ev.code === "KeyW") {
+window.addEventListener('keydown', (ev) => {
+  if (ev.code === 'KeyW') {
     forwards = true;
     backward = false;
   }
-  if (ev.code === "KeyS") {
+  if (ev.code === 'KeyS') {
     backward = true;
     forwards = false;
   }
-  if (ev.code === "KeyA") {
+  if (ev.code === 'KeyA') {
     left = true;
     right = false;
   }
-  if (ev.code === "KeyD") {
+  if (ev.code === 'KeyD') {
     right = true;
     left = false;
   }
-  if ((!ev.shiftKey && ev.code === "Space") || ev.code === "KeyQ") {
+  if ((!ev.shiftKey && ev.code === 'Space') || ev.code === 'KeyQ') {
     up = true;
     down = false;
   }
-  if ((ev.shiftKey && ev.code === "Space") || ev.code === "KeyE") {
+  if ((ev.shiftKey && ev.code === 'Space') || ev.code === 'KeyE') {
     down = true;
     up = false;
   }
 });
 
-window.addEventListener("keyup", (ev) => {
-  if (ev.code === "KeyW") forwards = false;
-  if (ev.code === "KeyS") backward = false;
-  if (ev.code === "KeyA") left = false;
-  if (ev.code === "KeyD") right = false;
-  if ((!ev.shiftKey && ev.code === "Space") || ev.code === "KeyQ") up = false;
-  if ((ev.shiftKey && ev.code === "Space") || ev.code === "KeyE") down = false;
+window.addEventListener('keyup', (ev) => {
+  if (ev.code === 'KeyW') forwards = false;
+  if (ev.code === 'KeyS') backward = false;
+  if (ev.code === 'KeyA') left = false;
+  if (ev.code === 'KeyD') right = false;
+  if ((!ev.shiftKey && ev.code === 'Space') || ev.code === 'KeyQ') up = false;
+  if ((ev.shiftKey && ev.code === 'Space') || ev.code === 'KeyE') down = false;
 });
 
 let debugCameraActive = true;
-window.addEventListener("keypress", (ev) => {
-  if (ev.code === "Digit1") {
+window.addEventListener('keypress', (ev) => {
+  if (ev.code === 'Digit1') {
     drone.useGroundFollowCam();
     debugCameraActive = false;
   }
-  if (ev.code === "Digit2") {
+  if (ev.code === 'Digit2') {
     drone.useBackFollowCam();
     debugCameraActive = false;
   }
-  if (ev.code === "Digit3") {
+  if (ev.code === 'Digit3') {
     drone.useLateralFollowCam();
     debugCameraActive = false;
   }
-  if (ev.code === "Digit4") {
+  if (ev.code === 'Digit4') {
     drone.useTopFollowCam();
     debugCameraActive = false;
   }
-  if (ev.code === "Digit5") debugCameraActive = true;
+  if (ev.code === 'Digit5') debugCameraActive = true;
 });
 
 let time = 0;

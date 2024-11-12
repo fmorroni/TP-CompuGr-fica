@@ -1,13 +1,13 @@
-import * as THREE from "three";
+import * as THREE from 'three';
 
 export function floorMesh() {
   const planeSize = 400;
   const loader = new THREE.TextureLoader();
   const texture = loader.load(
-    "../resources/checker.png",
-    () => console.log("Texture loaded successfully"),
+    '../resources/checker.png',
+    () => console.log('Texture loaded successfully'),
     undefined,
-    (err) => console.error("Error loading texture:", err),
+    (err) => console.error('Error loading texture:', err)
   );
   texture.wrapS = THREE.RepeatWrapping;
   texture.wrapT = THREE.RepeatWrapping;
