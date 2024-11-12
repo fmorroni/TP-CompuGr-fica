@@ -1,6 +1,6 @@
 import * as THREE from "three";
 
-export function propellerCoverGeometry(radius, height, thickness) {
+export function propellerCoverGeometry(radius, height, thickness, resolution = 20) {
   const curveHeight = 1;
   const curve1 = new THREE.CubicBezierCurve(
     new THREE.Vector2(-thickness, height - curveHeight),
@@ -28,7 +28,7 @@ export function propellerCoverGeometry(radius, height, thickness) {
     .concat(curve2.getPoints(curveResolution));
   points.push(curve1.v0.clone());
 
-  const pcGeom = new THREE.LatheGeometry(points);
+  const pcGeom = new THREE.LatheGeometry(points, resolution);
   pcGeom.rotateX(Math.PI / 2);
   return pcGeom;
 }
@@ -73,7 +73,3 @@ export function propellerBladesObj3D(bladeGeometry, material, count) {
   }
   return obj3D;
 }
-
-// export function propellerObj3D() {
-
-// }

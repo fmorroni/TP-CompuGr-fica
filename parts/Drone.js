@@ -47,21 +47,23 @@ export class Drone {
     this.propellerBackObj3D = new THREE.Object3D();
     this.propellerBackObj3D.translateY(-this.length / 2);
     this.obj3D.add(this.propellerFrontObj3D, this.propellerBackObj3D);
-    this.propCoverGeom = propellerCoverGeometry(this.length / 5, 15, 1);
     this.#addPropellerCovers();
   }
 
   #addPropellerCovers() {
     const bladeMaterial = new THREE.MeshPhongMaterial({ color: "green" });
     const propCoverMaterial = new THREE.MeshPhongMaterial({ color: "red" });
+
     const offsetX = this.width / 2;
-    const propCover1 = new THREE.Mesh(this.propCoverGeom, propCoverMaterial);
+
+    const propCoverGeom = propellerCoverGeometry(this.propellerCoverRadius, 13, 3);
+    const propCover1 = new THREE.Mesh(propCoverGeom, propCoverMaterial);
     propCover1.translateX(offsetX);
-    const propCover2 = new THREE.Mesh(this.propCoverGeom, propCoverMaterial);
+    const propCover2 = new THREE.Mesh(propCoverGeom, propCoverMaterial);
     propCover2.translateX(-offsetX);
-    const propCover3 = new THREE.Mesh(this.propCoverGeom, propCoverMaterial);
+    const propCover3 = new THREE.Mesh(propCoverGeom, propCoverMaterial);
     propCover3.translateX(offsetX);
-    const propCover4 = new THREE.Mesh(this.propCoverGeom, propCoverMaterial);
+    const propCover4 = new THREE.Mesh(propCoverGeom, propCoverMaterial);
     propCover4.translateX(-offsetX);
 
     this.propellerFrontObj3D.add(propCover1, propCover2);
