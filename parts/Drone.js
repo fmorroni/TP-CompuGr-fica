@@ -1,13 +1,12 @@
 import * as THREE from 'three';
 import { propellerBladeGeometry, propellerBladesObj3D, propellerCoverGeometry, propellerCoverOjb3D } from './Propeller';
-import { makePhongMesh } from '../helpers/utils';
-import { bodyGeometry } from './Body';
+import { bodyObj3D } from './Body';
 
 export class Drone {
   constructor() {
     this.obj3D = new THREE.Object3D();
     this.unit = 45;
-    this.length = this.unit * 6;
+    this.length = this.unit * 8;
     this.width = this.unit * 4;
     this.height = this.unit * 1.5;
 
@@ -41,9 +40,9 @@ export class Drone {
     this.activeCamera = this.backFollowCam;
 
     this.propellerFrontObj3D = new THREE.Object3D();
-    this.propellerFrontObj3D.translateY(this.length / 2);
+    this.propellerFrontObj3D.translateY(this.length / 2 - 2.8 * this.unit).translateZ(this.height / 2);
     this.propellerBackObj3D = new THREE.Object3D();
-    this.propellerBackObj3D.translateY(-this.length / 2);
+    this.propellerBackObj3D.translateY(-this.length / 2 + this.unit).translateZ(this.height / 2);
     this.obj3D.add(this.propellerFrontObj3D, this.propellerBackObj3D);
     this.#addPropellers();
 
@@ -58,10 +57,10 @@ export class Drone {
     const bladeMaterial = new THREE.MeshPhongMaterial({ color: 'green' });
     const propCoverMaterial = new THREE.MeshPhongMaterial({ color: 'red' });
 
-    const offsetX = this.width / 2;
+    const offsetX = this.width;
 
     const pcRadius = this.unit;
-    const cylRadius = 3;
+    const cylRadius = 5;
     const resolution = 20;
     const height = 10;
     const bladeGeom = propellerBladeGeometry(pcRadius - 2 * cylRadius, height / 2, 0.2, cylRadius);
@@ -98,7 +97,7 @@ export class Drone {
   }
 
   #addBody() {
-    const body = makePhongMesh(bodyGeometry(this.width * 0.8, this.length * 0.8, this.height), 'blue');
+    const body = bodyObj3D(this.width * 0.8, this.length, this.height, 0xadd8e6, 0x800080);
     this.obj3D.add(body);
   }
 

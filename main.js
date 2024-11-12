@@ -4,8 +4,6 @@ import { addAxes } from './helpers/utils';
 import { Drone } from './parts/Drone';
 import { floorMesh } from './parts/Floor';
 
-// const gui = new GUI();
-
 let debugCameraActive = false;
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -22,7 +20,7 @@ scene.add(l);
 scene.add(floorMesh());
 
 const debugCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-debugCamera.position.set(0, 0, 150);
+debugCamera.position.set(500, 0, 0);
 debugCamera.up.set(0, 0, 1);
 debugCamera.lookAt(0, 0, 0);
 
