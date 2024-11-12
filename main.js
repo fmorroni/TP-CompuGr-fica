@@ -4,7 +4,7 @@ import { addAxes } from './helpers/utils';
 import { Drone } from './parts/Drone';
 import { floorMesh } from './parts/Floor';
 
-let debugCameraActive = false;
+let debugCameraActive = true;
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -20,12 +20,11 @@ scene.add(l);
 scene.add(floorMesh());
 
 const debugCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-debugCamera.position.set(500, 0, 0);
+debugCamera.position.set(0, 500, 0);
 debugCamera.up.set(0, 0, 1);
-debugCamera.lookAt(0, 0, 0);
 
 const controls = new OrbitControls(debugCamera, renderer.domElement);
-controls.target.set(0, 5, 0);
+controls.target.set(0, 0, 0);
 controls.update();
 
 let forwards = false;
@@ -34,6 +33,8 @@ let left = false;
 let right = false;
 let up = false;
 let down = false;
+let closeLegs = false;
+let openLegs = false;
 
 window.addEventListener('keydown', (ev) => {
   if (ev.code === 'KeyW') {
@@ -89,6 +90,7 @@ window.addEventListener('keypress', (ev) => {
     debugCameraActive = false;
   }
   if (ev.code === 'Digit5') debugCameraActive = true;
+  if (ev.code === 'KeyT') closeLegs = !closeLegs;
 });
 
 let time = 0;
@@ -106,10 +108,12 @@ function animate(frameTime = 0) {
     else drone.decelerateY();
     if (left) drone.rotateLeft();
     else if (right) drone.rotateRight();
-    // else drone.decelerateX();
     if (up) drone.accelerateUp();
     else if (down) drone.accelerateDown();
     else drone.decelerateZ();
+
+    if (closeLegs && !drone.legsClosed) drone.closeLegs();
+    if (!closeLegs && drone.legsClosed) drone.openLegs();
 
     drone.move();
     renderer.render(scene, debugCameraActive ? debugCamera : drone.camera);

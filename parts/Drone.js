@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { propellerBladeGeometry, propellerBladesObj3D, propellerCoverGeometry, propellerCoverOjb3D } from './Propeller';
 import { bodyObj3D } from './Body';
+import { legObj3D } from './Legs';
+import { addAxes } from '../helpers/utils';
 
 export class Drone {
   constructor() {
@@ -9,6 +11,10 @@ export class Drone {
     this.length = this.unit * 8;
     this.width = this.unit * 4;
     this.height = this.unit * 1.5;
+
+    this.legsClosed = false;
+    this.legsCloseSpeed = 0.01;
+    this.legsAngle = 0;
 
     this.baseSpeed = new THREE.Vector3(1, 0.7, 0.5);
     this.baseAngularSpeed = 0.02;
@@ -98,7 +104,24 @@ export class Drone {
 
   #addBody() {
     const body = bodyObj3D(this.width * 0.8, this.length, this.height, 0xadd8e6, 0x800080);
-    this.obj3D.add(body);
+
+    const legLength = 50;
+    const leg = legObj3D(legLength, 10, 2, 20, 5)
+      .rotateZ(Math.PI / 2)
+      .translateZ(-legLength / 2.5);
+    const fronLeg1 = leg.clone();
+    fronLeg1.translateY(this.width / 5);
+    const fronLeg2 = leg.clone();
+    fronLeg2.translateY(-this.width / 5);
+    this.frontLegsObj3D = new THREE.Object3D();
+    this.frontLegsObj3D.add(fronLeg1, fronLeg2);
+    this.frontLegsObj3D.translateZ(-this.height / 2.5);
+    this.backLegsObj3D = this.frontLegsObj3D.clone();
+
+    this.frontLegsObj3D.translateY(this.length / 7);
+    this.backLegsObj3D.translateY(-this.length / 3);
+
+    this.obj3D.add(body, this.frontLegsObj3D, this.backLegsObj3D);
   }
 
   #updateCamera() {
@@ -210,6 +233,32 @@ export class Drone {
     this.propellerBlades.forEach((b) => {
       b.rotation.z += this.bladesAngularSpeed + this.currentSpeed.length() / this.maxSpeed.length();
     });
+  }
+
+  closeLegs() {
+    const closeSpeed = 0.01;
+    this.legsAngle += closeSpeed;
+    this.frontLegsObj3D.rotateX(-closeSpeed);
+    this.backLegsObj3D.rotateX(closeSpeed);
+    if (this.legsAngle >= Math.PI / 2) this.legsClosed = true;
+  }
+
+  closeLegs() {
+    if (!this.legsClosed) {
+      this.legsAngle += this.legsCloseSpeed;
+      this.frontLegsObj3D.rotateX(-this.legsCloseSpeed);
+      this.backLegsObj3D.rotateX(this.legsCloseSpeed);
+      if (this.legsAngle >= Math.PI / 2) this.legsClosed = true;
+    }
+  }
+
+  openLegs() {
+    if (this.legsClosed) {
+      this.legsAngle -= this.legsCloseSpeed;
+      this.frontLegsObj3D.rotateX(this.legsCloseSpeed);
+      this.backLegsObj3D.rotateX(-this.legsCloseSpeed);
+      if (this.legsAngle <= 0) this.legsClosed = false;
+    }
   }
 
   move() {
