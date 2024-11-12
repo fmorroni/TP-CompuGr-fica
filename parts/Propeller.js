@@ -28,5 +28,52 @@ export function propellerCoverGeometry(radius, height, thickness) {
     .concat(curve2.getPoints(curveResolution));
   points.push(curve1.v0.clone());
 
-  return new THREE.LatheGeometry(points);
+  const pcGeom = new THREE.LatheGeometry(points);
+  pcGeom.rotateX(Math.PI / 2);
+  return pcGeom;
 }
+
+export function propellerBladeGeometry(
+  length,
+  width,
+  thickness,
+  offsetCenter = 0,
+) {
+  const shape = new THREE.Shape(
+    [
+      [-width / 2, 0],
+      [-width / 2, length],
+      [width / 2, length],
+      [width / 2, 0],
+    ].map((p) => new THREE.Vector2(...p)),
+  );
+
+  const extrudeSettings = {
+    steps: 1,
+    depth: thickness,
+  };
+
+  const blade = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+  blade.translate(0, offsetCenter, 0).rotateY((20 * Math.PI) / 180);
+  return blade;
+}
+
+/**
+ *  @param {THREE.BufferGeometry} bladeGeometry
+ */
+export function propellerBladesObj3D(bladeGeometry, material, count) {
+  const obj3D = new THREE.Object3D();
+  const rotationAngle = (2 * Math.PI) / count;
+  let angle = 0;
+  for (let i = 0; i < count; ++i) {
+    const mesh = new THREE.Mesh(bladeGeometry, material);
+    mesh.rotateZ(angle);
+    angle += rotationAngle;
+    obj3D.add(mesh);
+  }
+  return obj3D;
+}
+
+// export function propellerObj3D() {
+
+// }
