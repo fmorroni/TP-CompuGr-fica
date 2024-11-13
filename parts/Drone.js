@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { propellerBladeGeometry, propellerBladesObj3D, propellerCoverGeometry, propellerCoverOjb3D } from './Propeller';
-import { bodyObj3D } from './Body';
+import { bodyObj3D, propellerHolderObj3D } from './Body';
 import { legObj3D } from './Legs';
 import { addAxes, makePhongMesh } from '../helpers/utils';
 
@@ -22,6 +22,12 @@ export class Drone {
     this.doorLength = this.height;
     this.maxRampPos = this.doorLength / 1.5;
 
+    this.armsExtended = true;
+    this.armsPos = new THREE.Vector3(0, 0, 0);
+    this.maxArmsPos = new THREE.Vector3(Math.PI / 2, 0, Math.PI / 2.5);
+    const armSteps = 100;
+    this.armsSpeed = new THREE.Vector3(this.maxArmsPos.x / armSteps, 0, this.maxArmsPos.z / armSteps);
+
     this.baseSpeed = new THREE.Vector3(1, 0.7, 0.5);
     this.baseAngularSpeed = 0.02;
     this.currentSpeed = new THREE.Vector3(0, 0, 0);
@@ -34,11 +40,11 @@ export class Drone {
 
     this.backFollowCam = {
       camera: camera.clone(),
-      offset: new THREE.Vector3(0, -300, 250),
+      offset: new THREE.Vector3(0, -500, 250),
     };
     this.lateralFollowCam = {
       camera: camera.clone(),
-      offset: new THREE.Vector3(-300, 0, 250),
+      offset: new THREE.Vector3(-700, 0, 150),
     };
     this.topFollowCam = {
       camera: camera.clone(),
@@ -51,11 +57,6 @@ export class Drone {
 
     this.activeCamera = this.backFollowCam;
 
-    this.propellerFrontObj3D = new THREE.Object3D();
-    this.propellerFrontObj3D.translateY(this.length / 2 - 2.8 * this.unit).translateZ(this.height / 2);
-    this.propellerBackObj3D = new THREE.Object3D();
-    this.propellerBackObj3D.translateY(-this.length / 2 + this.unit).translateZ(this.height / 2);
-    this.obj3D.add(this.propellerFrontObj3D, this.propellerBackObj3D);
     this.#addPropellers();
 
     this.bladesAngularSpeed = 0.5;
@@ -70,8 +71,6 @@ export class Drone {
     const bladeMaterial = new THREE.MeshPhongMaterial({ color: 'green' });
     const propCoverMaterial = new THREE.MeshPhongMaterial({ color: 'red' });
 
-    const offsetX = this.width + this.unit;
-
     const pcRadius = this.unit;
     const cylRadius = 5;
     const resolution = 20;
@@ -84,29 +83,71 @@ export class Drone {
     const propCoverObj3D = propellerCoverOjb3D(propCoverGeom, cylinder, propCoverMaterial);
 
     const blades1 = propellerBladesObj3D(bladeGeom, bladeMaterial, 10);
-    blades1.translateX(offsetX);
+    const blades2 = blades1.clone();
+    const blades3 = blades1.clone();
+    const blades4 = blades1.clone();
+
     const prop1 = new THREE.Object3D();
-    prop1.add(propCoverObj3D.clone().translateX(offsetX), blades1);
+    prop1.add(propCoverObj3D.clone(), blades1);
+    prop1.translateX(this.width / 2 + pcRadius);
 
-    const blades2 = propellerBladesObj3D(bladeGeom, bladeMaterial, 10);
-    blades2.translateX(-offsetX);
     const prop2 = new THREE.Object3D();
-    prop2.add(propCoverObj3D.clone().translateX(-offsetX), blades2);
+    prop2.add(propCoverObj3D.clone(), blades2);
+    prop2.translateX(this.width / 2 + pcRadius);
 
-    const blades3 = propellerBladesObj3D(bladeGeom, bladeMaterial, 10);
-    blades3.translateX(offsetX);
     const prop3 = new THREE.Object3D();
-    prop3.add(propCoverObj3D.clone().translateX(offsetX), blades3);
+    prop3.add(propCoverObj3D.clone(), blades3);
+    prop3.translateX(this.width / 2 + pcRadius);
 
-    const blades4 = propellerBladesObj3D(bladeGeom, bladeMaterial, 10);
-    blades4.translateX(-offsetX);
     const prop4 = new THREE.Object3D();
-    prop4.add(propCoverObj3D.clone().translateX(-offsetX), blades4);
+    prop4.add(propCoverObj3D.clone(), blades4);
+    prop4.translateX(this.width / 2 + pcRadius);
+
+    const propHolder = propellerHolderObj3D(this.length, this.width);
+
+    this.propHolderFR = propHolder.clone();
+    this.propHolderFR.add(prop1);
+    this.propHolderFR
+      .translateY(this.length / 7)
+      .translateX(this.width / 2)
+      .translateZ(this.height / 2);
+
+    this.propHolderFL = propHolder.clone();
+    this.propHolderFL.add(prop2);
+    this.propHolderFL.scale.x = -1;
+    this.propHolderFL
+      .translateY(this.length / 7)
+      .translateX(-this.width / 2)
+      .translateZ(this.height / 2);
+
+    this.propHolderBL = propHolder.clone();
+    this.propHolderBL.add(prop3);
+    this.propHolderBL.scale.x = -1;
+    this.propHolderBL
+      .translateY(-this.length / 2.5)
+      .translateX(-this.width / 2)
+      .translateZ(this.height / 2);
+
+    this.propHolderBR = propHolder.clone();
+    this.propHolderBR.add(prop4);
+    this.propHolderBR
+      .translateY(-this.length / 2.5)
+      .translateX(this.width / 2)
+      .translateZ(this.height / 2);
+
+    this.obj3D.add(this.propHolderFR, this.propHolderFL, this.propHolderBL, this.propHolderBR);
+
+    // this.propHolderFR.rotateZ(Math.PI / 2.5).rotateX(Math.PI / 2);
+    // this.propHolderFL.rotateZ(Math.PI / 2.5).rotateX(Math.PI / 2);
+    // this.propHolderBR.rotateZ(Math.PI / 2.5).rotateX(Math.PI / 2);
+    // this.propHolderBL.rotateZ(Math.PI / 2.5).rotateX(Math.PI / 2);
+
+    addAxes(this.propHolderFR, 30);
+    addAxes(this.propHolderFL, 30);
+    addAxes(this.propHolderBR, 30);
+    addAxes(this.propHolderBL, 30);
 
     this.propellerBlades = [blades1, blades2, blades3, blades4];
-
-    this.propellerFrontObj3D.add(prop1, prop2);
-    this.propellerBackObj3D.add(prop3, prop4);
   }
 
   #addBody() {
@@ -144,7 +185,6 @@ export class Drone {
       .translateZ(thickness / 2)
       .translateY(-this.doorLength / 2);
 
-    addAxes(this.rampMesh, 50);
     this.obj3D.add(this.rampMesh);
   }
 
@@ -201,26 +241,30 @@ export class Drone {
     );
   }
   #propellersForwardRotation() {
-    this.#propellerForwardRotation(this.propellerFrontObj3D);
-    this.#propellerForwardRotation(this.propellerBackObj3D);
+    this.#propellerForwardRotation(this.propHolderFL);
+    this.#propellerForwardRotation(this.propHolderFR);
+    this.#propellerForwardRotation(this.propHolderBL);
+    this.#propellerForwardRotation(this.propHolderBR);
   }
   #propellersBackwardRotation() {
-    this.#propellerBackwardRotation(this.propellerFrontObj3D);
-    this.#propellerBackwardRotation(this.propellerBackObj3D);
+    this.#propellerBackwardRotation(this.propHolderFL);
+    this.#propellerBackwardRotation(this.propHolderFR);
+    this.#propellerBackwardRotation(this.propHolderBL);
+    this.#propellerBackwardRotation(this.propHolderBR);
   }
 
   accelerateForward() {
-    this.#propellersForwardRotation();
+    if (this.armsExtended) this.#propellersForwardRotation();
     this.#acceleratePositive('y');
   }
   accelerateBackward() {
-    this.#propellersBackwardRotation();
+    if (this.armsExtended) this.#propellersBackwardRotation();
     this.#accelerateNegative('y');
   }
   decelerateY() {
-    if (this.propellerFrontObj3D.rotation.x < 0) {
+    if (this.armsExtended && this.propHolderFL.rotation.x < 0) {
       this.#propellersBackwardRotation();
-    } else if (this.propellerFrontObj3D.rotation.x > 0) {
+    } else if (this.armsExtended && this.propHolderFL.rotation.x > 0) {
       this.#propellersForwardRotation();
     }
     this.#decelerateAxis('y');
@@ -280,6 +324,28 @@ export class Drone {
       this.rampPos -= this.rampSpeed;
       this.rampMesh.translateY(-this.rampSpeed);
       if (this.rampPos <= 0) this.rampExtended = false;
+    }
+  }
+
+  extendArms() {
+    if (!this.armsExtended) {
+      this.armsPos.sub(this.armsSpeed);
+      this.propHolderFR.rotateZ(-this.armsSpeed.z).rotateX(-this.armsSpeed.x);
+      this.propHolderFL.rotateZ(this.armsSpeed.z).rotateX(-this.armsSpeed.x);
+      this.propHolderBR.rotateZ(-this.armsSpeed.z).rotateX(-this.armsSpeed.x);
+      this.propHolderBL.rotateZ(this.armsSpeed.z).rotateX(-this.armsSpeed.x);
+      if (this.armsPos.x <= 0 || this.armsPos.z <= 0) this.armsExtended = true;
+    }
+  }
+
+  retractArms() {
+    if (this.armsExtended) {
+      this.armsPos.add(this.armsSpeed);
+      this.propHolderFR.rotateZ(this.armsSpeed.z).rotateX(this.armsSpeed.x);
+      this.propHolderFL.rotateZ(-this.armsSpeed.z).rotateX(this.armsSpeed.x);
+      this.propHolderBR.rotateZ(this.armsSpeed.z).rotateX(this.armsSpeed.x);
+      this.propHolderBL.rotateZ(-this.armsSpeed.z).rotateX(this.armsSpeed.x);
+      if (this.armsPos.x >= this.maxRampPos.x || this.armsPos.z >= this.maxArmsPos.z) this.armsExtended = false;
     }
   }
 

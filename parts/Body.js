@@ -27,23 +27,6 @@ export function bodyObj3D(width, length, height, bodyColor, accentColor) {
   accentBackGeom.scale(1.3, 1.3, 1.3);
   accentBackGeom.translate(0, 0, -length / 2 - 1);
 
-  const propHolder = propellerHolderObj3D(length, width);
-  propHolder.rotateZ(-Math.PI).rotateX(-Math.PI / 2);
-
-  const propHolder1 = propHolder
-    .clone()
-    .translateY(length / 2.7)
-    .translateX(width / 2)
-    .translateZ(-height / 2);
-  const propHolder2 = propHolder1.clone().translateY(-length / 1.95);
-  const propHolder3 = propHolder
-    .clone()
-    .translateY(length / 2.7)
-    .translateX(-width / 2)
-    .translateZ(-height / 2);
-  propHolder3.scale.x = -1;
-  const propHolder4 = propHolder3.clone().translateY(-length / 1.95);
-
   const obj3D = new THREE.Object3D();
 
   obj3D.add(
@@ -54,21 +37,19 @@ export function bodyObj3D(width, length, height, bodyColor, accentColor) {
 
   obj3D.rotateZ(Math.PI).rotateX(Math.PI / 2);
 
-  obj3D.add(propHolder1, propHolder2, propHolder3, propHolder4);
-
   return obj3D;
 }
 
-function propellerHolderObj3D(length, width) {
+export function propellerHolderObj3D(length, width) {
   const obj3D = new THREE.Object3D();
 
-  const cyl = new THREE.CylinderGeometry(15, 15, length / 6);
+  const sphere = new THREE.SphereGeometry(15, 15, length / 6);
 
   const len = width / 2;
   const holder = new THREE.CylinderGeometry(10, 5, len);
   holder.rotateZ(Math.PI / 2).translate(len / 2, 0, 0);
 
-  obj3D.add(makePhongMesh(cyl, 0xd4b300), makePhongMesh(holder, 'gray'));
+  obj3D.add(makePhongMesh(sphere, 0xd4b300), makePhongMesh(holder, 'gray'));
 
   return obj3D;
 }
