@@ -40,7 +40,7 @@ export class Drone {
 
     this.backFollowCam = {
       camera: camera.clone(),
-      offset: new THREE.Vector3(0, -500, 250),
+      offset: new THREE.Vector3(0, -500, 450),
     };
     this.lateralFollowCam = {
       camera: camera.clone(),
@@ -50,8 +50,10 @@ export class Drone {
       camera: camera.clone(),
       offset: new THREE.Vector3(0, -1, 500),
     };
+    const groundCam = camera.clone();
+    groundCam.position.set(1300, -1300, 100);
     this.groundFollowCam = {
-      camera: camera.clone(),
+      camera: groundCam,
       offset: null,
     };
 
@@ -136,16 +138,6 @@ export class Drone {
       .translateZ(this.height / 2);
 
     this.obj3D.add(this.propHolderFR, this.propHolderFL, this.propHolderBL, this.propHolderBR);
-
-    // this.propHolderFR.rotateZ(Math.PI / 2.5).rotateX(Math.PI / 2);
-    // this.propHolderFL.rotateZ(Math.PI / 2.5).rotateX(Math.PI / 2);
-    // this.propHolderBR.rotateZ(Math.PI / 2.5).rotateX(Math.PI / 2);
-    // this.propHolderBL.rotateZ(Math.PI / 2.5).rotateX(Math.PI / 2);
-
-    addAxes(this.propHolderFR, 30);
-    addAxes(this.propHolderFL, 30);
-    addAxes(this.propHolderBR, 30);
-    addAxes(this.propHolderBL, 30);
 
     this.propellerBlades = [blades1, blades2, blades3, blades4];
   }
@@ -351,7 +343,7 @@ export class Drone {
 
   move() {
     this.#updateCamera();
-    // this.#rotateBlades();
+    this.#rotateBlades();
     this.obj3D.translateX(this.currentSpeed.x);
     this.obj3D.translateY(this.currentSpeed.y);
     this.obj3D.translateZ(this.currentSpeed.z);
