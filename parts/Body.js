@@ -64,7 +64,7 @@ function propellerHolderObj3D(length, width) {
 
   const cyl = new THREE.CylinderGeometry(15, 15, length / 6);
 
-  const len = width / 2.2;
+  const len = width / 2;
   const holder = new THREE.CylinderGeometry(10, 5, len);
   holder.rotateZ(Math.PI / 2).translate(len / 2, 0, 0);
 

@@ -2,19 +2,25 @@ import * as THREE from 'three';
 import { propellerBladeGeometry, propellerBladesObj3D, propellerCoverGeometry, propellerCoverOjb3D } from './Propeller';
 import { bodyObj3D } from './Body';
 import { legObj3D } from './Legs';
-import { addAxes } from '../helpers/utils';
+import { addAxes, makePhongMesh } from '../helpers/utils';
 
 export class Drone {
   constructor() {
     this.obj3D = new THREE.Object3D();
     this.unit = 45;
     this.length = this.unit * 8;
-    this.width = this.unit * 4;
+    this.width = this.unit * 3.5;
     this.height = this.unit * 1.5;
 
     this.legsClosed = false;
     this.legsCloseSpeed = 0.01;
     this.legsAngle = 0;
+
+    this.rampExtended = false;
+    this.rampSpeed = 1;
+    this.rampPos = 0;
+    this.doorLength = this.height;
+    this.maxRampPos = this.doorLength / 1.5;
 
     this.baseSpeed = new THREE.Vector3(1, 0.7, 0.5);
     this.baseAngularSpeed = 0.02;
@@ -55,6 +61,7 @@ export class Drone {
     this.bladesAngularSpeed = 0.5;
 
     this.#addBody();
+    this.#addRamp();
 
     this.obj3D.translateZ(this.height + 10);
   }
@@ -63,7 +70,7 @@ export class Drone {
     const bladeMaterial = new THREE.MeshPhongMaterial({ color: 'green' });
     const propCoverMaterial = new THREE.MeshPhongMaterial({ color: 'red' });
 
-    const offsetX = this.width;
+    const offsetX = this.width + this.unit;
 
     const pcRadius = this.unit;
     const cylRadius = 5;
@@ -103,7 +110,7 @@ export class Drone {
   }
 
   #addBody() {
-    const body = bodyObj3D(this.width * 0.8, this.length, this.height, 0xadd8e6, 0x800080);
+    const body = bodyObj3D(this.width, this.length, this.height, 0xadd8e6, 0x800080);
 
     const legLength = 50;
     const leg = legObj3D(legLength, 10, 2, 20, 5)
@@ -122,6 +129,23 @@ export class Drone {
     this.backLegsObj3D.translateY(-this.length / 3);
 
     this.obj3D.add(body, this.frontLegsObj3D, this.backLegsObj3D);
+  }
+
+  #addRamp() {
+    const width = this.unit;
+    const thickness = 3;
+    const doorGeom = new THREE.BoxGeometry(width, this.doorLength, thickness);
+    this.rampMesh = makePhongMesh(doorGeom, 'pink');
+    this.rampMesh
+      .rotateZ(Math.PI / 2)
+      .translateY(this.width / 2)
+      .translateX(-width)
+      .rotateX(-Math.atan(((8 / 3) * this.height) / this.width))
+      .translateZ(thickness / 2)
+      .translateY(-this.doorLength / 2);
+
+    addAxes(this.rampMesh, 50);
+    this.obj3D.add(this.rampMesh);
   }
 
   #updateCamera() {
@@ -202,18 +226,8 @@ export class Drone {
     this.#decelerateAxis('y');
   }
 
-  // accelerateRight() {
-  //   this.#acceleratePositive('x');
-  // }
-  // accelerateLeft() {
-  //   this.#accelerateNegative('x');
-  // }
-  // decelerateX() {
-  //   this.#decelerateAxis('x');
-  // }
   rotateRight() {
     this.obj3D.rotateZ(-this.baseAngularSpeed);
-    // this.activeCamera.camera.rotateZ(-this.baseAngularSpeed);
   }
   rotateLeft() {
     this.obj3D.rotateZ(this.baseAngularSpeed);
@@ -236,14 +250,6 @@ export class Drone {
   }
 
   closeLegs() {
-    const closeSpeed = 0.01;
-    this.legsAngle += closeSpeed;
-    this.frontLegsObj3D.rotateX(-closeSpeed);
-    this.backLegsObj3D.rotateX(closeSpeed);
-    if (this.legsAngle >= Math.PI / 2) this.legsClosed = true;
-  }
-
-  closeLegs() {
     if (!this.legsClosed) {
       this.legsAngle += this.legsCloseSpeed;
       this.frontLegsObj3D.rotateX(-this.legsCloseSpeed);
@@ -258,6 +264,22 @@ export class Drone {
       this.frontLegsObj3D.rotateX(this.legsCloseSpeed);
       this.backLegsObj3D.rotateX(-this.legsCloseSpeed);
       if (this.legsAngle <= 0) this.legsClosed = false;
+    }
+  }
+
+  extendRamp() {
+    if (!this.rampExtended) {
+      this.rampPos += this.rampSpeed;
+      this.rampMesh.translateY(this.rampSpeed);
+      if (this.rampPos >= this.maxRampPos) this.rampExtended = true;
+    }
+  }
+
+  retractRamp() {
+    if (this.rampExtended) {
+      this.rampPos -= this.rampSpeed;
+      this.rampMesh.translateY(-this.rampSpeed);
+      if (this.rampPos <= 0) this.rampExtended = false;
     }
   }
 

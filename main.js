@@ -3,6 +3,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { addAxes } from './helpers/utils';
 import { Drone } from './parts/Drone';
 import { floorMesh } from './parts/Floor';
+import { doorMesh } from './parts/Door';
 
 let debugCameraActive = true;
 
@@ -19,8 +20,9 @@ l.position.set(1000, 1000, 500);
 scene.add(l);
 scene.add(floorMesh());
 
+
 const debugCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-debugCamera.position.set(0, 500, 0);
+debugCamera.position.set(-500, 0, 100);
 debugCamera.up.set(0, 0, 1);
 
 const controls = new OrbitControls(debugCamera, renderer.domElement);
@@ -34,7 +36,7 @@ let right = false;
 let up = false;
 let down = false;
 let closeLegs = false;
-let openLegs = false;
+let extendRamp = false;
 
 window.addEventListener('keydown', (ev) => {
   if (ev.code === 'KeyW') {
@@ -91,6 +93,7 @@ window.addEventListener('keypress', (ev) => {
   }
   if (ev.code === 'Digit5') debugCameraActive = true;
   if (ev.code === 'KeyT') closeLegs = !closeLegs;
+  if (ev.code === 'KeyP') extendRamp = !extendRamp;
 });
 
 let time = 0;
@@ -114,6 +117,8 @@ function animate(frameTime = 0) {
 
     if (closeLegs && !drone.legsClosed) drone.closeLegs();
     if (!closeLegs && drone.legsClosed) drone.openLegs();
+    if (extendRamp && !drone.rampExtended) drone.extendRamp();
+    if (!extendRamp && drone.rampExtended) drone.retractRamp();
 
     drone.move();
     renderer.render(scene, debugCameraActive ? debugCamera : drone.camera);
