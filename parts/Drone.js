@@ -3,11 +3,12 @@ import { propellerBladeGeometry, propellerBladesObj3D, propellerCoverGeometry, p
 import { bodyObj3D, propellerHolderObj3D } from './Body';
 import { legObj3D } from './Legs';
 import { addAxes, makePhongMesh } from '../helpers/utils';
+import { doorMesh } from './Door';
 
 export class Drone {
   constructor() {
     this.obj3D = new THREE.Object3D();
-    this.unit = 45;
+    this.unit = 15;
     this.length = this.unit * 8;
     this.width = this.unit * 3.5;
     this.height = this.unit * 1.5;
@@ -35,7 +36,7 @@ export class Drone {
     this.maxPropellerRotation = (30 * Math.PI) / 180;
     this.propellerBaseRotation = 0.01;
 
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 4000);
     camera.up.set(0, 0, 1);
 
     this.backFollowCam = {
@@ -63,10 +64,23 @@ export class Drone {
 
     this.bladesAngularSpeed = 0.5;
 
+    this.cubeRenderTarget = new THREE.WebGLCubeRenderTarget(128, {
+      format: THREE.RGBFormat,
+      generateMipmaps: true,
+      minFilter: THREE.LinearMipmapLinearFilter,
+      encoding: THREE.sRGBEncoding,
+    });
+
+    this.cubeCamera = new THREE.CubeCamera(1, 10000, this.cubeRenderTarget);
+    this.obj3D.add(this.cubeCamera);
+
     this.#addBody();
     this.#addRamp();
 
     this.obj3D.translateZ(this.height + 10);
+
+    this.cubeCamera.position.copy(this.obj3D.position);
+    this.obj3D.traverse((child) => (child.castShadow = true));
   }
 
   #addPropellers() {
@@ -74,12 +88,12 @@ export class Drone {
     const propCoverMaterial = new THREE.MeshPhongMaterial({ color: 'red' });
 
     const pcRadius = this.unit;
-    const cylRadius = 5;
+    const cylRadius = this.unit / 9;
     const resolution = 20;
-    const height = 10;
-    const bladeGeom = propellerBladeGeometry(pcRadius - 2 * cylRadius, height / 2, 0.2, cylRadius);
+    const height = this.unit / 4.5;
+    const bladeGeom = propellerBladeGeometry(pcRadius - 2 * cylRadius, height / 2, this.unit / 225, cylRadius);
 
-    const propCoverGeom = propellerCoverGeometry(pcRadius, height, 3, resolution);
+    const propCoverGeom = propellerCoverGeometry(pcRadius, height, this.unit / 15, resolution);
     const cylinder = new THREE.CylinderGeometry(cylRadius, cylRadius, height, resolution);
     cylinder.rotateX(Math.PI / 2);
     const propCoverObj3D = propellerCoverOjb3D(propCoverGeom, cylinder, propCoverMaterial);
@@ -143,10 +157,10 @@ export class Drone {
   }
 
   #addBody() {
-    const body = bodyObj3D(this.width, this.length, this.height, 0xadd8e6, 0x800080);
+    const body = bodyObj3D(this.width, this.length, this.height, this.cubeRenderTarget.texture);
 
-    const legLength = 50;
-    const leg = legObj3D(legLength, 10, 2, 20, 5)
+    const legLength = this.unit / 0.9;
+    const leg = legObj3D(legLength, this.unit / 4.5, this.unit / 22.5, this.unit / 2.25, this.unit / 9)
       .rotateZ(Math.PI / 2)
       .translateZ(-legLength / 2.5);
     const fronLeg1 = leg.clone();
@@ -166,15 +180,15 @@ export class Drone {
 
   #addRamp() {
     const width = this.unit;
-    const thickness = 3;
-    const doorGeom = new THREE.BoxGeometry(width, this.doorLength, thickness);
-    this.rampMesh = makePhongMesh(doorGeom, 'pink');
+    const thickness = this.unit / 10;
+    // const doorGeom = new THREE.BoxGeometry(width, this.doorLength, thickness);
+    this.rampMesh = doorMesh(width, this.doorLength, thickness, this.cubeRenderTarget.texture);
     this.rampMesh
       .rotateZ(Math.PI / 2)
       .translateY(this.width / 2)
       .translateX(-width)
       .rotateX(-Math.atan(((8 / 3) * this.height) / this.width))
-      .translateZ(thickness / 2)
+      .translateZ(thickness)
       .translateY(-this.doorLength / 2);
 
     this.obj3D.add(this.rampMesh);
